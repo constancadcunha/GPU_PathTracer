@@ -219,12 +219,15 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
 {
     if(rec.material.type == MT_DIFFUSE)
     {
-        //INSERT CODE HERE,
+        //consider the diffuse reflection
+        rScattered = createRay(rec.pos + epsilon, rec.normal + randomUnitVector(gSeed));
         atten = rec.material.albedo * max(dot(rScattered.d, rec.normal), 0.0) / pi;
         return true;
     }
     if(rec.material.type == MT_METAL)
     {
+        vec3 reflected = reflect(normalize(rIn.d), rec.normal);
+        rScattered = createRay(rec.pos + epsilon, reflected + rec.material.roughness * randomInUnitSphere(gSeed));
        //INSERT CODE HERE, consider fuzzy reflections
         atten = rec.material.specColor;
         return true;
@@ -253,19 +256,33 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
         //Use probabilistic math to decide if scatter a reflected ray or a refracted ray
 
         float reflectProb;
-        float sin = n*n*(1.0-cosines*cosine);
+        float n = 1.0/rec.material.refIdx;
+        float sin = n*n*(1.0-cosine*cosine);
 
         if (sin <= 1.0)
             reflectProb = schlick(cosine, rec.material.refIdx);  
         else reflectProb = 1.0;
 
         if( hash1(gSeed) < reflectProb)  //Reflection
-        // rScattered = calculate reflected ray
-          // atten *= vec3(reflectProb); not necessary since we are only scattering reflectProb rays and not all reflected rays
+        {
+            vec3 v = rIn.d * -1.0;
+            vec3 r = 2.0 * rec.normal * (v * rec.normal) - v;
+            // calculate reflected ray
+            rScattered = createRay(rec.pos + epsilon, r);
+
+            // Color reflectionColor = reflection * obj->GetMaterial()->GetReflection() * obj->GetMaterial()->GetSpecColor();
+            // atten *= vec3(reflectProb); not necessary since we are only scattering reflectProb rays and not all reflected rays
+        }
         
-        //else  //Refraction
-        // rScattered = calculate refracted ray
-           // atten *= vec3(1.0 - reflectProb); not necessary since we are only scattering 1-reflectProb rays and not all refracted rays
+        else  //Refraction
+        {
+            vec3 refracted;
+            float r = 1.0 / rec.material.refIdx;
+            float cosI = dot(rIn.d, outwardNormal);
+            float cosT2 = 1.0 - r * r * (1.0 - cosI * cosI);
+            refracted = rIn.d * r + outwardNormal * (r * cosI - sqrt(cosT2));
+            rScattered = createRay(rec.pos - epsilon, refracted);
+            // atten *= vec3(1.0 - reflectProb); not necessary since we are only scattering 1-reflectProb rays and not all refracted rays
         }
 
         return true;
@@ -282,10 +299,28 @@ Triangle createTriangle(vec3 v0, vec3 v1, vec3 v2)
     return t;
 }
 
-bool hit_triangle(Triangle t, Ray r, float tmin, float tmax, out HitRecord rec)
+bool hit_triangle(Triangle tr, Ray r, float tmin, float tmax, out HitRecord rec)
 {
-    //INSERT YOUR CODE HERE
     //calculate a valid t and normal
+    vec3 a1 = tr.b - tr.a;
+    vec3 a2 = tr.c - tr.a;
+    vec3 normal = normalize(cross(a1, a2));
+    vec3 h = cross(r.d, a2);
+
+    float a = dot(a1, h);
+    float f = 1.0 / a;
+    vec3 s = r.o - tr.a;
+    float u = f * dot(s, h);
+
+    if(u < 0.0 || u > 1.0) return false;
+
+    vec3 q = cross(s, a1);
+    vec3 v = f * dot(r.d, q);
+
+    if(v < 0.0 || u + v > 1.0) return false;
+
+    float t = f * dot(a2, q);
+
     if(t < tmax && t > tmin)
     {
         rec.t = t;
@@ -295,7 +330,6 @@ bool hit_triangle(Triangle t, Ray r, float tmin, float tmax, out HitRecord rec)
     }
     return false;
 }
-
 
 struct Sphere
 {
@@ -343,13 +377,29 @@ vec3 center(MovingSphere mvsphere, float time)
 
 bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
 {
-    //INSERT YOUR CODE HERE
     //calculate a valid t and normal
-	
+    vec3 co = r.o - s.center;
+    vec3 u = normalize(r.d);
+    
+    float b = 2.0 * dot(u, co);
+    float c = dot(co, co) - s.radius * s.radius;
+    if(c > 0.0 && b > 0.0) return false;
+
+    float a = dot(u, u);
+    float delta = b*b - 4.0*a*c;
+    if(delta < 0.0) return false;
+
+    float t1 = (-b - sqrt(delta)) / (2.0*a);
+    float t2 = (-b + sqrt(delta)) / (2.0*a);
+
+    float t = min(t1, t2);
+
+    vec3 normal = normalize(pointOnRay(r, t) - s.center);
+
     if(t < tmax && t > tmin) {
         rec.t = t;
         rec.pos = pointOnRay(r, rec.t);
-        rec.normal = normal
+        rec.normal = normal;
         return true;
     }
     else return false;
