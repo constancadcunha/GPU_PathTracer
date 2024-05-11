@@ -229,6 +229,7 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
         vec3 reflected = reflect(normalize(rIn.d), rec.normal);
         rScattered = createRay(rec.pos + epsilon, reflected + rec.material.roughness * randomInUnitSphere(gSeed));
        //INSERT CODE HERE, consider fuzzy reflections
+       
         atten = rec.material.specColor;
         return true;
     }

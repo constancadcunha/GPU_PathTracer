@@ -169,8 +169,23 @@ vec3 directlighting(pointLight pl, Ray r, HitRecord rec){
     float shininess;
     HitRecord dummy;
 
-   //INSERT YOUR CODE HERE
-    
+    vec3 lightDir = pl.pos - rec.pos;
+    float lightDist = length(lightDir);
+    lightDir = normalize(lightDir);
+
+    Ray shadowRay = createRay(rec.pos, lightDir);
+
+    if(!hit_world(shadowRay, 0.001, lightDist, dummy)){
+        float lightIntensity = max(dot(rec.normal, lightDir), 0.0);
+        diffCol = rec.material.albedo * lightIntensity;
+        vec3 viewDir = normalize(r.o - rec.pos);
+        vec3 halfDir = normalize(lightDir + viewDir);
+        float specAngle = max(dot(rec.normal, halfDir), 0.0);
+        shininess = 2.0 / (pow(rec.material.roughness, 4.0) - 2.0);
+        specCol = rec.material.specColor * pow(specAngle, shininess);
+        colorOut = diffCol + specCol;
+    }
+  
 	return colorOut; 
 }
 
@@ -187,26 +202,25 @@ vec3 rayColor(Ray r)
         {
             //calculate direct lighting with 3 white point lights:
             {
-                //createPointLight(vec3(-10.0, 15.0, 0.0), vec3(1.0, 1.0, 1.0))
-                //createPointLight(vec3(8.0, 15.0, 3.0), vec3(1.0, 1.0, 1.0))
-                //createPointLight(vec3(1.0, 15.0, -9.0), vec3(1.0, 1.0, 1.0))
+                createPointLight(vec3(-10.0, 15.0, 0.0), vec3(1.0, 1.0, 1.0));
+                createPointLight(vec3(8.0, 15.0, 3.0), vec3(1.0, 1.0, 1.0));
+                createPointLight(vec3(1.0, 15.0, -9.0), vec3(1.0, 1.0, 1.0));
 
-                //for instance: col += directlighting(createPointLight(vec3(-10.0, 15.0, 0.0), vec3(1.0, 1.0, 1.0)), r, rec) * throughput;
+                //for instance:
+                col += directlighting(createPointLight(vec3(-10.0, 15.0, 0.0), vec3(1.0, 1.0, 1.0)), r, rec) * throughput;
             }
            
             //calculate secondary ray and update throughput
             Ray scatterRay;
             vec3 atten;
             if(scatter(r, rec, atten, scatterRay))
-            { //new code here
+            {
                 throughput *= atten;
                 r = scatterRay;
             }
             else
             {
-                break;
-
-            }
+                break;}
         
         }   
         else  //background
