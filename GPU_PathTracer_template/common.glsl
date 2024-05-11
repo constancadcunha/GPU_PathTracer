@@ -315,7 +315,7 @@ bool hit_triangle(Triangle tr, Ray r, float tmin, float tmax, out HitRecord rec)
     if(u < 0.0 || u > 1.0) return false;
 
     vec3 q = cross(s, a1);
-    vec3 v = f * dot(r.d, q);
+    float v = f * dot(r.d, q);
 
     if(v < 0.0 || u + v > 1.0) return false;
 
@@ -366,7 +366,7 @@ MovingSphere createMovingSphere(vec3 center0, vec3 center1, float radius, float 
 
 vec3 center(MovingSphere mvsphere, float time)
 {
-    return moving_center;
+    return mvsphere.center0 + (mvsphere.center1 - mvsphere.center0) * (time - mvsphere.time0) / (mvsphere.time1 - mvsphere.time0);
 }
 
 
@@ -395,6 +395,7 @@ bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
     float t = min(t1, t2);
 
     vec3 normal = normalize(pointOnRay(r, t) - s.center);
+    if(s.radius < 0.0) rec.normal *= -1.0;
 
     if(t < tmax && t > tmin) {
         rec.t = t;
@@ -411,11 +412,27 @@ bool hit_movingSphere(MovingSphere s, Ray r, float tmin, float tmax, out HitReco
     bool outside;
     float t;
 
+    vec3 center = center(s, r.t);
 
-     //INSERT YOUR CODE HERE
-     //Calculate the moving center
-    //calculate a valid t and normal
-	
+    vec3 co = r.o - center;
+    vec3 u = normalize(r.d);
+
+    B = 2.0 * dot(u, co);
+    C = dot(co, co) - s.radius * s.radius;
+    if(C > 0.0 && B > 0.0) return false;
+
+    float a = dot(u, u);
+    delta = B*B - 4.0*a*C;
+    if(delta < 0.0) return false;
+
+    float t1 = (-B - sqrt(delta)) / (2.0*a);
+    float t2 = (-B + sqrt(delta)) / (2.0*a);
+
+    t = min(t1, t2);
+
+    vec3 normal = normalize(pointOnRay(r, t) - center);
+    if(s.radius < 0.0) rec.normal *= -1.0;
+    
     if(t < tmax && t > tmin) {
         rec.t = t;
         rec.pos = pointOnRay(r, rec.t);

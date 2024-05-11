@@ -198,9 +198,17 @@ vec3 rayColor(Ray r)
             Ray scatterRay;
             vec3 atten;
             if(scatter(r, rec, atten, scatterRay))
-            {   //  insert your code here    }
+            { //new code here
+                throughput *= atten;
+                r = scatterRay;
+            }
+            else
+            {
+                break;
+
+            }
         
-        }
+        }   
         else  //background
         {
             float t = 0.8 * (r.d.y + 1.0);
@@ -210,6 +218,7 @@ vec3 rayColor(Ray r)
     }
     return col;
 }
+
 
 #define MAX_SAMPLES 10000.0
 
