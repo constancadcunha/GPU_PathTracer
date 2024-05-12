@@ -235,8 +235,6 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
     {
         vec3 reflected = reflect(normalize(rIn.d), rec.normal);
         rScattered = createRay(rec.pos + epsilon, reflected + rec.material.roughness * randomInUnitSphere(gSeed));
-       //INSERT CODE HERE, consider fuzzy reflections
-       
         atten = rec.material.specColor;
         return true;
     }
@@ -273,10 +271,8 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
 
         if( hash1(gSeed) < reflectProb)  //Reflection
         {
-            vec3 v = rIn.d * -1.0;
-            vec3 r = 2.0 * rec.normal * (v * rec.normal) - v;
-            // calculate reflected ray
-            rScattered = createRay(rec.pos + epsilon, r);
+            vec3 reflected = reflect(normalize(rIn.d), rec.normal);
+            rScattered = createRay(rec.pos + epsilon, reflected);
 
             // Color reflectionColor = reflection * obj->GetMaterial()->GetReflection() * obj->GetMaterial()->GetSpecColor();
             // atten *= vec3(reflectProb); not necessary since we are only scattering reflectProb rays and not all reflected rays
