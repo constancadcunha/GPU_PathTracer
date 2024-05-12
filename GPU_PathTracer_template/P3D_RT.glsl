@@ -9,64 +9,64 @@
 
 bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
 {
-    bool hit = false;
     Material material;
-    float t = tmax;
+    HitRecord hitRec;
+    hitRec.t = tmax;
    
-    if(hit_triangle(createTriangle(vec3(-10.0, -0.01, 10.0), vec3(10.0, -0.01, 10.0), vec3(-10.0, -0.01, -10.0)), r, tmin, t, rec))
+    if(hit_triangle(createTriangle(vec3(-10.0, -0.01, 10.0), vec3(10.0, -0.01, 10.0), vec3(-10.0, -0.01, -10.0)), r, tmin, hitRec.t, rec))
     {
-        hit = true;
-        material = createDiffuseMaterial(vec3(0.2));
+        hitRec = rec;
+        hitRec.material = createDiffuseMaterial(vec3(0.2));
     }
 
-    if(hit_triangle(createTriangle(vec3(-10.0, -0.01, -10.0), vec3(10.0, -0.01, 10), vec3(10.0, -0.01, -10.0)), r, tmin, t, rec))
+    if(hit_triangle(createTriangle(vec3(-10.0, -0.01, -10.0), vec3(10.0, -0.01, 10), vec3(10.0, -0.01, -10.0)), r, tmin, hitRec.t, rec))
     {
-        hit = true;
-        material = createDiffuseMaterial(vec3(0.2));
+        hitRec = rec;
+        hitRec.material = createDiffuseMaterial(vec3(0.2));
     }
 
     if(hit_sphere(
         createSphere(vec3(-4.0, 1.0, 0.0), 1.0),
         r,
         tmin,
-        t,
+        hitRec.t,
         rec))
     {
-        hit = true;
-        material = createDiffuseMaterial(vec3(0.2, 0.95, 0.1));
+        hitRec = rec;
+        hitRec.material = createDiffuseMaterial(vec3(0.2, 0.95, 0.1));
     }
 
     if(hit_sphere(
         createSphere(vec3(4.0, 1.0, 0.0), 1.0),
         r,
         tmin,
-        t,
+        hitRec.t,
         rec))
     {
-        hit = true;
-        material = createMetalMaterial(vec3(0.7, 0.6, 0.5), 0.0);
+        hitRec = rec;
+        hitRec.material = createMetalMaterial(vec3(0.7, 0.6, 0.5), 0.0);
     }
 
     if(hit_sphere(
         createSphere(vec3(0.0, 1.0, 0.0), 1.0),
         r,
         tmin,
-        t,
+        hitRec.t,
         rec))
     {
-        hit = true;
-        material = createDialectricMaterial(vec3(0.0), 1.333, 0.0);
+        hitRec = rec;
+        hitRec.material = createDialectricMaterial(vec3(0.0), 1.333, 0.0);
     }
 
     if(hit_sphere(
         createSphere(vec3(0.0, 1.0, 0.0), -0.5),
         r,
         tmin,
-        t,
+        hitRec.t,
         rec))
     {
-        hit = true;
-        material = createDialectricMaterial(vec3(0.0), 1.333, 0.0);
+        hitRec = rec;
+        hitRec.material = createDialectricMaterial(vec3(0.0), 1.333, 0.0);
     }
    
     // int numxy = 5;
@@ -91,11 +91,11 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
     //                     createMovingSphere(center, center1, 0.2, 0.0, 1.0),
     //                     r,
     //                     tmin,
-    //                     t,
+    //                     hitRec.t,
     //                     rec))
     //                 {
-    //                     hit = true;
-    //                     material = createDiffuseMaterial(hash3(seed) * hash3(seed));
+    //                     hitRec = rec;
+    //                     hitRec.material = createDiffuseMaterial(hash3(seed) * hash3(seed));
     //                 }
     //             }
     //             else if(chooseMaterial < 0.5)
@@ -105,11 +105,11 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
     //                     createSphere(center, 0.2),
     //                     r,
     //                     tmin,
-    //                     t,
+    //                     hitRec.t,
     //                     rec))
     //                 {
-    //                     hit = true;
-    //                     material = createDiffuseMaterial(hash3(seed) * hash3(seed));
+    //                     hitRec = rec;
+    //                     hitRec.material = createDiffuseMaterial(hash3(seed) * hash3(seed));
     //                 }
     //             }
     //             else if(chooseMaterial < 0.7)
@@ -119,12 +119,11 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
     //                     createSphere(center, 0.2),
     //                     r,
     //                     tmin,
-    //                     t,
+    //                     hitRec.t,
     //                     rec))
     //                 {
-    //                     hit = true;
-    //                    // material.type = MT_METAL;
-    //                     material = createMetalMaterial((hash3(seed) + 1.0) * 0.5, 0.0);
+    //                     hitRec = rec;
+    //                     hitRec.material = createMetalMaterial((hash3(seed) + 1.0) * 0.5, 0.0);
     //                 }
     //             }
     //             else if(chooseMaterial < 0.9)
@@ -134,12 +133,11 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
     //                     createSphere(center, 0.2),
     //                     r,
     //                     tmin,
-    //                     t,
+    //                     hitRec.t,
     //                     rec))
     //                 {
-    //                     hit = true;
-    //                    // material.type = MT_METAL;
-    //                     material = createMetalMaterial((hash3(seed) + 1.0) * 0.5, hash1(seed));
+    //                     hitRec = rec;
+    //                     hitRec.material = createMetalMaterial((hash3(seed) + 1.0) * 0.5, hash1(seed));
     //                 }
     //             }
     //             else
@@ -149,21 +147,19 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
     //                     createSphere(center, 0.2),
     //                     r,
     //                     tmin,
-    //                     t,
+    //                     hitRec.t,
     //                     rec))
     //                 {
-    //                     hit = true;
-    //                     material.type = MT_DIALECTRIC;
-    //                     material = createDialectricMaterial(hash3(seed), 1.2, 0.0);
+    //                     hitRec = rec;
+    //                     hitRec.material = createDialectricMaterial(hash3(seed), 1.2, 0.0);
     //                 }
     //             }
     //         }
     //     }
     // }
 
-    rec.material = material;
-    rec.t = t;
-    return hit;
+    rec = hitRec;
+    return hitRec.t != tmax;
 }
 
 vec3 directlighting(pointLight pl, Ray r, HitRecord rec){
@@ -172,21 +168,16 @@ vec3 directlighting(pointLight pl, Ray r, HitRecord rec){
     float shininess;
     HitRecord dummy;
 
-    vec3 lightDir = pl.pos - rec.pos;
-    float lightDist = length(lightDir);
-    lightDir = normalize(lightDir);
+    vec3 l = normalize(pl.pos - rec.pos);  //light vector    
+    float intensity = max(dot(rec.normal,l), 0.0);    
+    Ray shadowRay = createRay(rec.pos + epsilon * rec.normal, l);   
+    float dist = length(pl.pos  - rec.pos);
 
-    Ray shadowRay = createRay(rec.pos, lightDir);
-
-    if(!hit_world(shadowRay, 0.001, lightDist, dummy)){
-        float lightIntensity = max(dot(rec.normal, lightDir), 0.0);
-        diffCol = rec.material.albedo * lightIntensity;
-        vec3 viewDir = normalize(r.o - rec.pos);
-        vec3 halfDir = normalize(lightDir + viewDir);
-        float specAngle = max(dot(rec.normal, halfDir), 0.0);
-        shininess = 2.0 / (pow(rec.material.roughness, 4.0) - 2.0);
-        specCol = rec.material.specColor * pow(specAngle, shininess);
-        colorOut = diffCol + specCol;
+    if(intensity > 0.0) {
+        if (!hit_world(shadowRay, 0.0, dist, dummy)) {
+            diffCol = rec.material.albedo * intensity;
+            colorOut = diffCol + specCol;
+        }
     }
   
 	return colorOut; 
@@ -201,12 +192,8 @@ vec3 rayColor(Ray r)
     vec3 throughput = vec3(1.0f, 1.0f, 1.0f);
     for(int i = 0; i < MAX_BOUNCES; ++i)
     {
-        if(hit_world(r, 0.001, 10000.0, rec))
+        if(hit_world(r, 0.0, 10000.0, rec))
         {
-            // DEBUGGING NORMALS
-            col = rec.normal;
-            break;
-
             //calculate direct lighting with 3 white point lights:
             col += directlighting(createPointLight(vec3(-10.0, 15.0, 0.0), vec3(1.0, 1.0, 1.0)), r, rec) * throughput;
             col += directlighting(createPointLight(vec3(8.0, 15.0, 3.0), vec3(1.0, 1.0, 1.0)), r, rec) * throughput;

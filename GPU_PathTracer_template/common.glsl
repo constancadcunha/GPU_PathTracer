@@ -402,12 +402,13 @@ bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
 
     float t = min(t1, t2);
 
-    vec3 normal = normalize(pointOnRay(r, t) - s.center);
+    vec3 pos = pointOnRay(r, t);
+    vec3 normal = normalize(pos - s.center);
     if(s.radius < 0.0) rec.normal *= -1.0;
 
     if(t < tmax && t > tmin) {
         rec.t = t;
-        rec.pos = pointOnRay(r, rec.t);
+        rec.pos = pos;
         rec.normal = normal;
         return true;
     }
