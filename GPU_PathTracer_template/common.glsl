@@ -144,10 +144,19 @@ Ray getRay(Camera cam, vec2 pixel_sample)  //rnd pixel_sample viewport coordinat
         cam.height * (pixel_sample.y / iResolution.y - 0.5f),
         -cam.planeDist);
 
-    vec3 d = ps;
+    // vec3 d = ps;
 
-    vec3 eye = cam.eye;
-    vec3 ray_dir = normalize(cam.u * d.x + cam.v * d.y + cam.n * d.z);
+    // vec3 eye = cam.eye;
+    // vec3 ray_dir = normalize(cam.u * d.x + cam.v * d.y + cam.n * d.z);
+
+    vec3 d, eye;
+    vec3 l = vec3(ls.x * cam.lensRadius, ls.y * cam.lensRadius, 0.0);
+    vec3 p = ps * (cam.focusDist / cam.lensRadius);
+
+    eye = cam.eye + cam.u * l.x + cam.v * l.y;
+    d = p - l;
+
+    vec3 ray_dir = normalize(d.x * cam.u + cam.v * d.y + cam.n * d.z);
 
     return createRay(eye, ray_dir, time);
 }
@@ -395,7 +404,7 @@ bool hit_sphere(Sphere s, Ray r, float tmin, float tmax, out HitRecord rec)
 
     vec3 pos = pointOnRay(r, t);
     vec3 normal = normalize(pos - s.center);
-    if(s.radius < 0.0) rec.normal *= -1.0;
+    if(s.radius < 0.0) normal *= -1.0;
 
     if(t < tmax && t > tmin) {
         rec.t = t;
