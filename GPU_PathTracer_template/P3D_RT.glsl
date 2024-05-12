@@ -204,13 +204,9 @@ vec3 rayColor(Ray r)
         if(hit_world(r, 0.001, 10000.0, rec))
         {
             //calculate direct lighting with 3 white point lights:
-
-                //createPointLight(vec3(-10.0, 15.0, 0.0), vec3(1.0, 1.0, 1.0));
-                //createPointLight(vec3(8.0, 15.0, 3.0), vec3(1.0, 1.0, 1.0));
-                //createPointLight(vec3(1.0, 15.0, -9.0), vec3(1.0, 1.0, 1.0));
-
-                //for instance:
-                //col += directlighting(createPointLight(vec3(8.0, 15.0, 3.0), vec3(1.0, 1.0, 1.0)), r, rec) * throughput;
+            col += directlighting(createPointLight(vec3(-10.0, 15.0, 0.0), vec3(1.0, 1.0, 1.0)), r, rec) * throughput;
+            col += directlighting(createPointLight(vec3(8.0, 15.0, 3.0), vec3(1.0, 1.0, 1.0)), r, rec) * throughput;
+            col += directlighting(createPointLight(vec3(1.0, 15.0, -9.0), vec3(1.0, 1.0, 1.0)), r, rec) * throughput;
            
             //calculate secondary ray and update throughput
             Ray scatterRay;
@@ -222,8 +218,8 @@ vec3 rayColor(Ray r)
             }
             else
             {
-                break;}
-        
+                break;
+            }
         }   
         else  //background
         {
