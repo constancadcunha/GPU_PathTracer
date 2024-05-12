@@ -213,8 +213,6 @@ struct HitRecord
     Material material;
 };
 
-
-
 float schlick(float cosine, float refIdx)
 {
     float r0 = (1.0 - refIdx) / (1.0 + refIdx);
@@ -227,14 +225,14 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
     if(rec.material.type == MT_DIFFUSE)
     {
         //consider the diffuse reflection
-        rScattered = createRay(rec.pos + epsilon, rec.normal + randomUnitVector(gSeed));
+        rScattered = createRay(rec.pos + epsilon * rec.normal, rec.normal + randomUnitVector(gSeed));
         atten = rec.material.albedo * max(dot(rScattered.d, rec.normal), 0.0) / pi;
         return true;
     }
     if(rec.material.type == MT_METAL)
     {
         vec3 reflected = reflect(normalize(rIn.d), rec.normal);
-        rScattered = createRay(rec.pos + epsilon, reflected + rec.material.roughness * randomInUnitSphere(gSeed));
+        rScattered = createRay(rec.pos + epsilon * rec.normal, reflected + rec.material.roughness * randomInUnitSphere(gSeed));
         atten = rec.material.specColor;
         return true;
     }
@@ -244,12 +242,21 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
         vec3 outwardNormal;
         float niOverNt;
         float cosine;
+        bool tir = false;
 
         if(dot(rIn.d, rec.normal) > 0.0) //hit inside
         {
             outwardNormal = -rec.normal;
             niOverNt = rec.material.refIdx;
             cosine = -dot(rIn.d, rec.normal);
+
+            if (niOverNt > 1.0) {
+                float sinT2 = niOverNt * niOverNt * (1.0 - cosine * cosine);
+                if (sinT2 > 1.0)
+                    tir = true;
+                cosine = sqrt(1.0 - sinT2);
+            }
+
             atten = exp(-rec.material.refractColor * rec.t);
         }
         else  //hit from outside
@@ -259,34 +266,22 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
             cosine = -dot(rIn.d, rec.normal); 
         }
 
-        //Use probabilistic math to decide if scatter a reflected ray or a refracted ray
-
         float reflectProb;
-        float n = 1.0/rec.material.refIdx;
-        float sin = n*n*(1.0-cosine*cosine);
 
-        if (sin <= 1.0)
-            reflectProb = schlick(cosine, rec.material.refIdx);  
-        else reflectProb = 1.0;
+        if (tir)
+            reflectProb = 1.0;  
+        else reflectProb = schlick(cosine, rec.material.refIdx);
 
         if( hash1(gSeed) < reflectProb)  //Reflection
         {
-            vec3 reflected = reflect(normalize(rIn.d), rec.normal);
-            rScattered = createRay(rec.pos + epsilon, reflected);
-
-            // Color reflectionColor = reflection * obj->GetMaterial()->GetReflection() * obj->GetMaterial()->GetSpecColor();
-            // atten *= vec3(reflectProb); not necessary since we are only scattering reflectProb rays and not all reflected rays
+            vec3 reflected = reflect(normalize(rIn.d), outwardNormal);
+            rScattered = createRay(rec.pos + epsilon * outwardNormal, reflected);
         }
         
         else  //Refraction
         {
-            vec3 refracted;
-            float r = 1.0 / rec.material.refIdx;
-            float cosI = dot(rIn.d, outwardNormal);
-            float cosT2 = 1.0 - r * r * (1.0 - cosI * cosI);
-            refracted = rIn.d * r + outwardNormal * (r * cosI - sqrt(cosT2));
-            rScattered = createRay(rec.pos - epsilon, refracted);
-            // atten *= vec3(1.0 - reflectProb); not necessary since we are only scattering 1-reflectProb rays and not all refracted rays
+            vec3 refracted = refract(normalize(rIn.d), outwardNormal, niOverNt);
+            rScattered = createRay(rec.pos - epsilon * outwardNormal, refracted);
         }
 
         return true;
