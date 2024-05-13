@@ -168,7 +168,8 @@ vec3 directlighting(pointLight pl, Ray r, HitRecord rec){
     float shininess;
     HitRecord dummy;
 
-    vec3 l = normalize(pl.pos - rec.pos);  //light vector    
+    vec2 offset = randomInUnitDisk(gSeed) * 5.0;
+    vec3 l = normalize(pl.pos + vec3(offset.x, 0, offset.y) - rec.pos);  //light vector    
     float intensity = max(dot(rec.normal,l), 0.0);    
     Ray shadowRay = createRay(rec.pos + epsilon * rec.normal, l);   
     float dist = length(pl.pos  - rec.pos);
