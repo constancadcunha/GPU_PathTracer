@@ -241,7 +241,7 @@ bool scatter(Ray rIn, HitRecord rec, out vec3 atten, out Ray rScattered)
     if(rec.material.type == MT_METAL)
     {
         vec3 reflected = reflect(normalize(rIn.d), rec.normal);
-        rScattered = createRay(rec.pos + epsilon * rec.normal, reflected + rec.material.roughness * randomInUnitSphere(gSeed));
+        rScattered = createRay(rec.pos + epsilon * rec.normal, reflected);
         atten = rec.material.specColor;
         return true;
     }

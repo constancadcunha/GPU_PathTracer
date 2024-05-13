@@ -55,7 +55,7 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
         rec))
     {
         hitRec = rec;
-        hitRec.material = createDialectricMaterial(vec3(0.0), 1.333, 0.0);
+        hitRec.material = createDialectricMaterial(vec3(0.0), 1.333, 0.2);
     }
 
     if(hit_sphere(
@@ -66,7 +66,7 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
         rec))
     {
         hitRec = rec;
-        hitRec.material = createDialectricMaterial(vec3(0.0), 1.333, 0.0);
+        hitRec.material = createDialectricMaterial(vec3(0.0), 1.333, 0.2);
     }
    
     int numxy = 5;
@@ -157,6 +157,7 @@ bool hit_world(Ray r, float tmin, float tmax, out HitRecord rec)
             }
         }
     }
+    hitRec.normal = normalize(hitRec.normal + randomInUnitSphere(gSeed) * hitRec.material.roughness);
 
     rec = hitRec;
     return hitRec.t != tmax;
